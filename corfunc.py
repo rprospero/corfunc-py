@@ -63,7 +63,6 @@ def fit_data(q, iq):
 
     fitp = curve_fit(lambda q, k, sig: porod(q, k, sig)*q**2,
                      q[mask], iq[mask]*q[mask]**2)[0]
-    fitq = np.arange(maxq, 10*maxq, q[1]-q[0])
 
     data = interp1d(q, iq)
     s1 = smooth(data, lambda x: porod(x, fitp[0], fitp[1]), maxq, q[-1])
@@ -72,14 +71,9 @@ def fit_data(q, iq):
     mask = np.logical_and(q < minq, minq*0 < q)
     mask[0:6] = False
 
-    fitg = curve_fit(lambda q, a, b: vonk(q, a, b)*q**2,
-                     q[mask], iq[mask]*q[mask]**2)[0]
-    v = fitvonk(q[mask], iq[mask])
     g = fitguinier(q[mask], iq[mask])[0]
-    fitq = np.arange(0, minq, q[1]-q[0])
 
     s2 = smooth(lambda x: (np.exp(g[1]+g[0]*x**2)), s1, q[0], minq)
-    qs = np.arange(0, q[-1]*5, (q[1]-q[0]))
 
     return s2
 
@@ -105,9 +99,6 @@ def sq(f):
     orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
     q = orig[:240, 0]
     iq = orig[:240, 1]
-    s2 = fit_data(q, iq)
-    qs = np.arange(0, q[-1]*100, (q[1]-q[0]))
-    iqs = s2(qs)*qs**2
     return (q, iq)
 
 
@@ -117,7 +108,6 @@ def extract(x, y):
 
     if len(maxs) == 0:
         return (np.nan, np.nan, np.nan, np.nan, np.nan, np.nan)
-    Lp = x[maxs[0]]  # First maximum
     GammaMin = y[mins[0]]
 
     ddy = (y[:-2]+y[2:]-2*y[1:-1])/(x[2:]-x[:-2])**2
@@ -144,7 +134,6 @@ def extract(x, y):
     d0 = x[mask[-1]]
     GammaMax = y[mask[-1]]
     A = -GammaMin/GammaMax
-    wc = -A / (-A + Q)
 
     return (x[mins[0]], x[maxs[0]], dtr, Lc, d0, A)
 
@@ -172,12 +161,11 @@ def main(files, background=None, export=None, plot=False, save=None):
 
     from math import isnan
 
-    mins = np.array([x[0] for x in values if not(isnan(x[0]))])
-    maxs = np.array([x[1] for x in values if not(isnan(x[0]))])
-    dtrs = np.array([x[2] for x in values if not(isnan(x[0]))])
-    lcs = np.array([x[3] for x in values if not(isnan(x[0]))])
-    qs = np.array([x[4] for x in values if not(isnan(x[0]))])
-    As = np.array([x[5] for x in values if not(isnan(x[0]))])
+    maxs = np.array([v[1] for v in values if not(isnan(v[0]))])
+    dtrs = np.array([v[2] for v in values if not(isnan(v[0]))])
+    lcs = np.array([v[3] for v in values if not(isnan(v[0]))])
+    qs = np.array([v[4] for v in values if not(isnan(v[0]))])
+    As = np.array([v[5] for v in values if not(isnan(v[0]))])
 
     print("Long Period")
     print("%f ± %f" % (np.median(maxs), np.max(np.abs(maxs-np.median(maxs)))))
