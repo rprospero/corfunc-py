@@ -65,10 +65,8 @@ def fit_data(q,iq):
     mask[0:6] = False
 
     fitg = curve_fit(lambda q,a,b:vonk(q,a,b)*q**2,q[mask],iq[mask]*q[mask]**2)[0]
-    print(fitg)
     v = fitvonk(q[mask],iq[mask])
     g = fitguinier(q[mask],iq[mask])[0]
-    print(g)
     fitq = np.arange(0,minq,q[1]-q[0])
 
     s2 = smooth(lambda x:(np.exp(g[1]+g[0]*x**2)),s1,q[0],minq)
@@ -112,7 +110,6 @@ def extract(x,y):
 
     if len(maxs) == 0:
         return (np.nan,np.nan,np.nan,np.nan,np.nan,np.nan)
-    print(maxs)
     Lp = x[maxs[0]] # First maximum
     GammaMin = y[mins[0]]
 
@@ -124,7 +121,6 @@ def extract(x,y):
     #plt.plot(ddy)
     #plt.show()
 
-    print(linear_point*100)
     m = np.mean(dy[linear_point-40:linear_point+40])
     b = y[1:-1][linear_point]-m*x[1:-1][linear_point]
 
@@ -158,7 +154,6 @@ def main(files,background=None,export=None,plot=False,save=None):
         plt.plot(x, y, label=os.path.basename(f))
         values.append(extract(x, y))
         specs.append(y)
-        print(len(y))
         x0 = x
     plt.xlabel("Distance [nm]")
     plt.ylabel("Correlation")
@@ -178,8 +173,6 @@ def main(files,background=None,export=None,plot=False,save=None):
     qs  = np.array([x[4] for x in values if not(isnan(x[0]))])
     As = np.array([x[5] for x in values if not(isnan(x[0]))])
 
-    maxs[maxs>1000] = np.nan
-
     print("Minimum")
     print("%f ± %f" % (np.median(mins), np.max(np.abs(mins-np.median(mins)))))
     print("Long Period")
@@ -196,9 +189,6 @@ def main(files,background=None,export=None,plot=False,save=None):
     print("%f ± %f" % (np.median(lcs/maxs), np.max(np.abs(lcs/maxs-np.median(lcs/maxs)))))
 
     if export:
-        print(x0)
-        print(x0.shape)
-        print(np.array(specs).shape)
         np.savetxt(export,
                    np.vstack([x0, specs]).T)
 
@@ -223,7 +213,5 @@ if __name__=="__main__":
     parser.add_argument('FILE', nargs="+",
                         help='Scattering measurements in two column ascii format')
     args = parser.parse_args()
-
-    print(args)
 
     main(args.FILE,args.background,args.export,args.plot,args.saveImage)
