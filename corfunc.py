@@ -150,15 +150,16 @@ def extract(x,y):
 values = []
 specs = []
 
-def main(files,background):
+def main(files,background=None,export=None):
     for f in files: #LS Beetle
         x, y = corr(f,background)
         style = "k-"
         leg = "Black"
         plt.plot(x, y, style, label=leg)
         values.append(extract(x, y))
-        specs.append(y/y[0])
+        specs.append(y)
         print(len(y))
+        x0 = x
     plt.xlabel("Distance [nm]")
     plt.ylabel("Correlation")
     plt.xlim(0, 750)
@@ -177,27 +178,6 @@ def main(files,background):
 
     maxs[maxs>1000] = np.nan
 
-    x = np.linspace(1,22,len(maxs))
-    x -= 1
-
-    plt.xlabel("Feather Position (mm)")
-
-    p1=plt.plot(x,maxs,"-b",lw=4, label="First Maximum")
-    print(maxs)
-    plt.ylabel("Long Period (nm)")
-
-    ax2 = plt.twinx()
-    ax2.set_ylabel("Width (nm)")
-
-    p2=ax2.plot(x,lcs,"-r",lw=4, label="lc")
-    print(lcs)
-
-    plt.legend(p1+p2,["Long Period","Hard Block Thickness"],loc=2)
-
-    plt.xlim(0,21)
-
-    plt.show()
-
     print("Minimum")
     print("%f ± %f" % (np.median(mins), np.max(np.abs(mins-np.median(mins)))))
     print("Long Period")
@@ -213,6 +193,13 @@ def main(files,background):
     print("Filling Fraction")
     print("%f ± %f" % (np.median(lcs/maxs), np.max(np.abs(lcs/maxs-np.median(lcs/maxs)))))
 
+    if export:
+        print(x0)
+        print(x0.shape)
+        print(np.array(specs).shape)
+        np.savetxt(export,
+                   np.vstack([x0, specs]).T)
+
 
 if __name__=="__main__":
 
@@ -222,10 +209,13 @@ if __name__=="__main__":
         description='Perform correlation function analysis on scattering data')
     parser.add_argument('--background', action='store',
                         help='A background measurement for subtraction')
+    parser.add_argument('--export', action='store',
+                        help='Export the extracted real space data to a file')
+
     parser.add_argument('FILE', nargs="+",
                         help='Scattering measurements in two column ascii format')
     args = parser.parse_args()
 
     print(args)
 
-    main(args.FILE,args.background)
+    main(args.FILE,args.background,args.export)
