@@ -84,13 +84,6 @@ def corr(f, background=None):
     return (xs, transform)
 
 
-def sq(f):
-    orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
-    q = orig[:240, 0]
-    iq = orig[:240, 1]
-    return (q, iq)
-
-
 def extract(x, y):
     maxs = argrelextrema(y, np.greater)[0]
     mins = argrelextrema(y, np.less)[0]
