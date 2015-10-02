@@ -150,22 +150,24 @@ def extract(x,y):
 values = []
 specs = []
 
-def main(files,background=None,export=None):
+def main(files,background=None,export=None,plot=False,save=None):
+    import os.path
+
     for f in files: #LS Beetle
         x, y = corr(f,background)
-        style = "k-"
-        leg = "Black"
-        plt.plot(x, y, style, label=leg)
+        plt.plot(x, y, label=os.path.basename(f))
         values.append(extract(x, y))
         specs.append(y)
         print(len(y))
         x0 = x
     plt.xlabel("Distance [nm]")
     plt.ylabel("Correlation")
-    plt.xlim(0, 750)
-    plt.ylim(-500, 950)
     plt.legend()
-    plt.show()
+
+    if plot:
+        plt.show()
+    elif save:
+        plt.savefig(save)
 
     from math import isnan
 
@@ -212,10 +214,16 @@ if __name__=="__main__":
     parser.add_argument('--export', action='store',
                         help='Export the extracted real space data to a file')
 
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--plot', action='store_true',
+                       help='Display a plot of the correlation functions.')
+    group.add_argument('--saveImage', action='store',
+                       help='Save a plot to an image file.')
+
     parser.add_argument('FILE', nargs="+",
                         help='Scattering measurements in two column ascii format')
     args = parser.parse_args()
 
     print(args)
 
-    main(args.FILE,args.background,args.export)
+    main(args.FILE,args.background,args.export,args.plot,args.saveImage)
