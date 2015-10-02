@@ -155,8 +155,6 @@ def main(files,background):
         x, y = corr(f,background)
         style = "k-"
         leg = "Black"
-        if i % 10 != 0:
-            leg = None
         plt.plot(x, y, style, label=leg)
         values.append(extract(x, y))
         specs.append(y/y[0])
@@ -218,6 +216,16 @@ def main(files,background):
 
 if __name__=="__main__":
 
-    from sys import argv
+    import argparse
 
-    main(argv[1],argv[2:])
+    parser = argparse.ArgumentParser(
+        description='Perform correlation function analysis on scattering data')
+    parser.add_argument('--background', action='store',
+                        help='A background measurement for subtraction')
+    parser.add_argument('FILE', nargs="+",
+                        help='Scattering measurements in two column ascii format')
+    args = parser.parse_args()
+
+    print(args)
+
+    main(args.FILE,args.background)
