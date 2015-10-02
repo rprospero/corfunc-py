@@ -91,9 +91,10 @@ def corr(f, background=None):
     if background is None:
         back = np.zeros(orig.shape)
     else:
-        back = np.loadtxt(background, skiprows=1, dtype=np.float32)
+        back = np.loadtxt(background, skiprows=1, dtype=np.float32)[:, 1]
     q = orig[:480, 0]
     iq = orig[:480, 1]
+    iq -= back[:480]
     s2 = fit_data(q, iq)
     qs = np.arange(0, q[-1]*100, (q[1]-q[0]))
     iqs = s2(qs)*qs**2
