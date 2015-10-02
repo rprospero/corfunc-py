@@ -6,39 +6,48 @@ from numpy.random import rand
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.interpolate import interp1d
-from scipy.integrate import quad,romb
-from scipy.fftpack import dct,dst
+from scipy.integrate import quad, romb
+from scipy.fftpack import dct, dst
 from scipy.signal import argrelextrema
 from numpy.linalg import lstsq
 
-def porod(q,K,sigma):
+def porod(q, K, sigma):
     return (K*q**(-4))*np.exp(-q**2*sigma**2)
-def guinier(q,A,B):
+
+
+def guinier(q, A, B):
     return A*np.exp(B*q**2)
-def vonk(q,A,B):
+
+
+def vonk(q, A, B):
     temp = A-B*q**(-2)
     temp[np.logical_not(np.isfinite(temp))] = A
-    #print(temp)
     return temp
-def fitguinier(q,iq):
+
+
+def fitguinier(q, iq):
     A = np.vstack([q**2,np.ones(q.shape)]).T
     return lstsq(A,np.log(iq))
-def fitvonk(q,iq):
-    A = np.vstack([q**2,np.ones(q.shape)]).T
-    return lstsq(A,iq*q**2)[0]
-def smooth(f,g,start,stop):
+
+
+def fitvonk(q, iq):
+    A = np.vstack([q**2, np.ones(q.shape)]).T
+    return lstsq(A, iq*q**2)[0]
+
+
+def smooth(f, g, start, stop):
     def result_array(x):
         ys = np.zeros(x.shape)
-        ys[x<=start] = f(x[x<=start])
-        ys[x>=stop] = g(x[x>=stop])
-        #k = (x-start)/(stop-start)
-        #h = np.exp(-1/k)/(np.exp(-1/k)+np.exp(-1/(1-k)))
+        ys[x <= start] = f(x[x <= start])
+        ys[x >= stop] = g(x[x >= stop])
         h = 1/(1+(x-stop)**2/(start-x)**2)
-        mask = np.logical_and(x>start,x<stop)
+        mask = np.logical_and(x > start, x < stop)
         ys[mask] = h[mask]*g(x[mask])+(1-h[mask])*f(x[mask])
         return ys
+
     def result_scalar(x):
         return result_array(np.array([x]))[0]
+
     def result(x):
         if type(x) is np.ndarray:
             return result_array(x)
@@ -48,78 +57,75 @@ def smooth(f,g,start,stop):
 
 
 
-def fit_data(q,iq):
+def fit_data(q, iq):
 
     maxq = 0.04
 
-    mask = q>maxq
+    mask = q > maxq
 
-    fitp = curve_fit(lambda q,k,sig: porod(q,k,sig)*q**2,q[mask],iq[mask]*q[mask]**2)[0]
-    fitq = np.arange(maxq,10*maxq,q[1]-q[0])
+    fitp = curve_fit(lambda q, k, sig: porod(q, k, sig)*q**2,
+                     q[mask], iq[mask]*q[mask]**2)[0]
+    fitq = np.arange(maxq, 10*maxq, q[1]-q[0])
 
-    data=interp1d(q,iq)
-    s1 = smooth(data,lambda x:porod(x,fitp[0],fitp[1]),maxq,q[-1])
+    data = interp1d(q, iq)
+    s1 = smooth(data, lambda x: porod(x, fitp[0], fitp[1]), maxq, q[-1])
 
     minq = 0.0065*3
-    mask = np.logical_and(q<minq,minq*0<q)
+    mask = np.logical_and(q < minq, minq*0 < q)
     mask[0:6] = False
 
-    fitg = curve_fit(lambda q,a,b:vonk(q,a,b)*q**2,q[mask],iq[mask]*q[mask]**2)[0]
-    v = fitvonk(q[mask],iq[mask])
-    g = fitguinier(q[mask],iq[mask])[0]
-    fitq = np.arange(0,minq,q[1]-q[0])
+    fitg = curve_fit(lambda q, a, b: vonk(q, a, b)*q**2,
+                     q[mask], iq[mask]*q[mask]**2)[0]
+    v = fitvonk(q[mask], iq[mask])
+    g = fitguinier(q[mask], iq[mask])[0]
+    fitq = np.arange(0, minq, q[1]-q[0])
 
-    s2 = smooth(lambda x:(np.exp(g[1]+g[0]*x**2)),s1,q[0],minq)
-    qs = np.arange(0,q[-1]*5,(q[1]-q[0]))
-
-    # plt.plot(q,iq*q**2,"r.")
-    # plt.plot(qs,s2(qs)*qs**2)
-
-    # plt.yscale('log')
-    # plt.show()
+    s2 = smooth(lambda x: (np.exp(g[1]+g[0]*x**2)), s1, q[0], minq)
+    qs = np.arange(0, q[-1]*5, (q[1]-q[0]))
 
     return s2
 
-def corr(f,background=None):
-    orig = np.loadtxt(f,skiprows=1,dtype=np.float32)
+
+def corr(f, background=None):
+    orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
     if background is None:
-        back=np.zeros(orig.shape)
+        back = np.zeros(orig.shape)
     else:
-        back = np.loadtxt(background,skiprows=1,dtype=np.float32)
-    q = orig[:480,0]
-    iq = orig[:480,1]#-back[:480,1]
-    s2 = fit_data(q,iq)
-    qs = np.arange(0,q[-1]*100,(q[1]-q[0]))
+        back = np.loadtxt(background, skiprows=1, dtype=np.float32)
+    q = orig[:480, 0]
+    iq = orig[:480, 1]
+    s2 = fit_data(q, iq)
+    qs = np.arange(0, q[-1]*100, (q[1]-q[0]))
     iqs = s2(qs)*qs**2
     transform = dct(iqs)
     xs = np.pi*np.arange(len(qs))/(q[1]-q[0])/len(qs)
-    return (xs,transform)
+    return (xs, transform)
+
 
 def sq(f):
-    orig = np.loadtxt(f,skiprows=1,dtype=np.float32)
-    q = orig[:240,0]
-    iq = orig[:240,1]
-    s2 = fit_data(q,iq)
-    qs = np.arange(0,q[-1]*100,(q[1]-q[0]))
+    orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
+    q = orig[:240, 0]
+    iq = orig[:240, 1]
+    s2 = fit_data(q, iq)
+    qs = np.arange(0, q[-1]*100, (q[1]-q[0]))
     iqs = s2(qs)*qs**2
-    return (q,iq)
+    return (q, iq)
 
-def extract(x,y):
-    maxs = argrelextrema(y,np.greater)[0]
-    mins = argrelextrema(y,np.less)[0]
+
+def extract(x, y):
+    maxs = argrelextrema(y, np.greater)[0]
+    mins = argrelextrema(y, np.less)[0]
 
     if len(maxs) == 0:
-        return (np.nan,np.nan,np.nan,np.nan,np.nan,np.nan)
-    Lp = x[maxs[0]] # First maximum
+        return (np.nan, np.nan, np.nan, np.nan, np.nan, np.nan)
+    Lp = x[maxs[0]]  # First maximum
     GammaMin = y[mins[0]]
 
     ddy = (y[:-2]+y[2:]-2*y[1:-1])/(x[2:]-x[:-2])**2
     dy = (y[2:]-y[:-2])/(x[2:]-x[:-2])
-    zeros = argrelextrema(np.abs(ddy),np.less)[0]
+    zeros = argrelextrema(np.abs(ddy), np.less)[0]
     linear_point = zeros[0]
     linear_point = int(mins[0]/10)
-    #plt.plot(ddy)
-    #plt.show()
 
     m = np.mean(dy[linear_point-40:linear_point+40])
     b = y[1:-1][linear_point]-m*x[1:-1][linear_point]
@@ -129,10 +135,10 @@ def extract(x,y):
     plt.axhline(GammaMin)
     plt.axhline(0)
 
-    xs = np.linspace(0,x[mins[0]],30)
+    xs = np.linspace(0, x[mins[0]], 30)
     ys = m*xs+b
-    
-    plt.plot(xs,ys)
+
+    plt.plot(xs, ys)
 
     mask = np.where(np.abs((y-(m*x+b))/y) < 0.01)[0]
     dtr = x[mask[0]]
@@ -146,11 +152,12 @@ def extract(x,y):
 values = []
 specs = []
 
-def main(files,background=None,export=None,plot=False,save=None):
+
+def main(files, background=None, export=None, plot=False, save=None):
     import os.path
 
-    for f in files: #LS Beetle
-        x, y = corr(f,background)
+    for f in files:
+        x, y = corr(f, background)
         plt.plot(x, y, label=os.path.basename(f))
         values.append(extract(x, y))
         specs.append(y)
@@ -169,8 +176,8 @@ def main(files,background=None,export=None,plot=False,save=None):
     mins = np.array([x[0] for x in values if not(isnan(x[0]))])
     maxs = np.array([x[1] for x in values if not(isnan(x[0]))])
     dtrs = np.array([x[2] for x in values if not(isnan(x[0]))])
-    lcs  = np.array([x[3] for x in values if not(isnan(x[0]))])
-    qs  = np.array([x[4] for x in values if not(isnan(x[0]))])
+    lcs = np.array([x[3] for x in values if not(isnan(x[0]))])
+    qs = np.array([x[4] for x in values if not(isnan(x[0]))])
     As = np.array([x[5] for x in values if not(isnan(x[0]))])
 
     print("Minimum")
@@ -186,14 +193,15 @@ def main(files,background=None,export=None,plot=False,save=None):
     print("PolyDispersity")
     print("%f ± %f" % (np.median(As), np.max(np.abs(As-np.median(As)))))
     print("Filling Fraction")
-    print("%f ± %f" % (np.median(lcs/maxs), np.max(np.abs(lcs/maxs-np.median(lcs/maxs)))))
+    print("%f ± %f" % (np.median(lcs/maxs),
+                       np.max(np.abs(lcs/maxs-np.median(lcs/maxs)))))
 
     if export:
         np.savetxt(export,
                    np.vstack([x0, specs]).T)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     import argparse
 
@@ -211,7 +219,8 @@ if __name__=="__main__":
                        help='Save a plot to an image file.')
 
     parser.add_argument('FILE', nargs="+",
-                        help='Scattering measurements in two column ascii format')
+                        help='Scattering data in two column ascii format')
     args = parser.parse_args()
 
-    main(args.FILE,args.background,args.export,args.plot,args.saveImage)
+    main(args.FILE, args.background, args.export,
+         args.plot, args.saveImage)
