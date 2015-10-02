@@ -102,7 +102,6 @@ def extract(x, y):
     b = y[1:-1][linear_point]-m*x[1:-1][linear_point]
 
     Lc = (GammaMin-b)/m
-    Q = b
     plt.axhline(GammaMin)
     plt.axhline(0)
 
@@ -143,11 +142,11 @@ def main(files, background=None, export=None, plot=False, save=None):
 
     from math import isnan
 
-    maxs = np.array([v[1] for v in values if not(isnan(v[0]))])
-    dtrs = np.array([v[2] for v in values if not(isnan(v[0]))])
-    lcs = np.array([v[3] for v in values if not(isnan(v[0]))])
-    qs = np.array([v[4] for v in values if not(isnan(v[0]))])
-    As = np.array([v[5] for v in values if not(isnan(v[0]))])
+    maxs = np.array([v[1] for v in values if not isnan(v[0])])
+    dtrs = np.array([v[2] for v in values if not isnan(v[0])])
+    lcs = np.array([v[3] for v in values if not isnan(v[0])])
+    qs = np.array([v[4] for v in values if not isnan(v[0])])
+    As = np.array([v[5] for v in values if not isnan(v[0])])
 
     print("Long Period")
     print("%f ± %f" % (np.median(maxs), np.max(np.abs(maxs-np.median(maxs)))))
