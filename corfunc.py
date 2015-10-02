@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from numpy.random import rand
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.interpolate import interp1d
-from scipy.integrate import quad, romb
-from scipy.fftpack import dct, dst
+from scipy.fftpack import dct
 from scipy.signal import argrelextrema
 from numpy.linalg import lstsq
+
 
 def porod(q, K, sigma):
     return (K*q**(-4))*np.exp(-q**2*sigma**2)
@@ -26,8 +25,8 @@ def vonk(q, A, B):
 
 
 def fitguinier(q, iq):
-    A = np.vstack([q**2,np.ones(q.shape)]).T
-    return lstsq(A,np.log(iq))
+    A = np.vstack([q**2, np.ones(q.shape)]).T
+    return lstsq(A, np.log(iq))
 
 
 def fitvonk(q, iq):
@@ -54,7 +53,6 @@ def smooth(f, g, start, stop):
         else:
             return result_scalar(x)
     return result
-
 
 
 def fit_data(q, iq):
@@ -181,14 +179,12 @@ def main(files, background=None, export=None, plot=False, save=None):
     qs = np.array([x[4] for x in values if not(isnan(x[0]))])
     As = np.array([x[5] for x in values if not(isnan(x[0]))])
 
-    print("Minimum")
-    print("%f ± %f" % (np.median(mins), np.max(np.abs(mins-np.median(mins)))))
     print("Long Period")
     print("%f ± %f" % (np.median(maxs), np.max(np.abs(maxs-np.median(maxs)))))
-    print("Average Interface Thickness")
-    print("%f ± %f" % (np.median(dtrs), np.max(np.abs(dtrs-np.median(dtrs)))))
     print("Average Hard Block Thickness")
     print("%f ± %f" % (np.median(lcs), np.max(np.abs(lcs-np.median(lcs)))))
+    print("Average Interface Thickness")
+    print("%f ± %f" % (np.median(dtrs), np.max(np.abs(dtrs-np.median(dtrs)))))
     print("Average Core Thickness ")
     print("%f ± %f" % (np.median(qs), np.max(np.abs(qs-np.median(qs)))))
     print("PolyDispersity")
