@@ -18,20 +18,9 @@ def guinier(q, A, B):
     return A*np.exp(B*q**2)
 
 
-def vonk(q, A, B):
-    temp = A-B*q**(-2)
-    temp[np.logical_not(np.isfinite(temp))] = A
-    return temp
-
-
 def fitguinier(q, iq):
     A = np.vstack([q**2, np.ones(q.shape)]).T
     return lstsq(A, np.log(iq))
-
-
-def fitvonk(q, iq):
-    A = np.vstack([q**2, np.ones(q.shape)]).T
-    return lstsq(A, iq*q**2)[0]
 
 
 def smooth(f, g, start, stop):
