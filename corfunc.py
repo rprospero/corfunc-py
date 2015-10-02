@@ -150,99 +150,74 @@ def extract(x,y):
 values = []
 specs = []
 
-# for i in [22, 23, 27]:  # 9, 13, 14, 22, 23, 27, 36, 37, 38, 41, 42, 43]:
-for i in [18]: #LS Beetle
-# for i in range(313,322): # LS in capillary
-# for i in range(333,342): # Lactator Beetle in capillary
-    if i == 139:
-        continue
-    # x, y = corr("/home/adam/Science/sax-data/Cyphochilus/" +
-    #             "CY15_saxs_%05d_0001.dat" % i,
-    #             "/home/adam/Science/sax-data/Cyphochilus/" +
-    #             "CY15_saxs_%05d_0001.dat" % 15)
-    x, y = corr("/home/adam/Science/sax-data/lsbeetle/" +
-                "LSB_saxs_%05d_0001.dat" % i,
-                "/home/adam/Science/sax-data/lsbeetle/" +
-                "LSB_saxs_%05d_0001.dat" % 3)
-    # x, y = corr("/home/adam/Science/sax-data/static/" +
-    #             "JL_saxs_%05d_0001.dat" % i,
-    #             "/home/adam/Science/sax-data/static/" +
-    #             "JL_saxs_%05d_0001.dat" % 1)
-    style = "k-"
-    leg = "Black"
-    if i % 10 != 0:
-        leg = None
-    plt.plot(x, y, style, label=leg)
-    values.append(extract(x, y))
-    specs.append(y/y[0])
-    print(len(y))
-# plt.yscale("log")
-plt.xlabel("Distance [nm]")
-plt.ylabel("Correlation")
-plt.xlim(0, 750)
-plt.ylim(-500, 950)
-plt.legend()
-plt.show()
+def main(files,background):
+    for f in files: #LS Beetle
+        x, y = corr(f,background)
+        style = "k-"
+        leg = "Black"
+        if i % 10 != 0:
+            leg = None
+        plt.plot(x, y, style, label=leg)
+        values.append(extract(x, y))
+        specs.append(y/y[0])
+        print(len(y))
+    plt.xlabel("Distance [nm]")
+    plt.ylabel("Correlation")
+    plt.xlim(0, 750)
+    plt.ylim(-500, 950)
+    plt.legend()
+    plt.show()
 
-from math import isnan
+    from math import isnan
 
-mins = np.array([x[0] for x in values if not(isnan(x[0]))])
-maxs = np.array([x[1] for x in values if not(isnan(x[0]))])
-dtrs = np.array([x[2] for x in values if not(isnan(x[0]))])
-lcs  = np.array([x[3] for x in values if not(isnan(x[0]))])
-qs  = np.array([x[4] for x in values if not(isnan(x[0]))])
-As = np.array([x[5] for x in values if not(isnan(x[0]))])
-#gmins= np.array([x[6] for x in values])
-#gmaxs= np.array([x[7] for x in values])
+    mins = np.array([x[0] for x in values if not(isnan(x[0]))])
+    maxs = np.array([x[1] for x in values if not(isnan(x[0]))])
+    dtrs = np.array([x[2] for x in values if not(isnan(x[0]))])
+    lcs  = np.array([x[3] for x in values if not(isnan(x[0]))])
+    qs  = np.array([x[4] for x in values if not(isnan(x[0]))])
+    As = np.array([x[5] for x in values if not(isnan(x[0]))])
 
-maxs[maxs>1000] = np.nan
-#lcs[mins>300] = np.nan
-#mins[mins>300] = np.nan
+    maxs[maxs>1000] = np.nan
 
-x = np.linspace(1,22,len(maxs))
-x -= 1
+    x = np.linspace(1,22,len(maxs))
+    x -= 1
 
-#plt.axvline(x[45],c="purple")
-#plt.axvline(x[80],c="blue")
+    plt.xlabel("Feather Position (mm)")
 
-plt.xlabel("Feather Position (mm)")
+    p1=plt.plot(x,maxs,"-b",lw=4, label="First Maximum")
+    print(maxs)
+    plt.ylabel("Long Period (nm)")
 
-#plt.subplot(1,2,2)
-#plt.plot(mins, label="First Minimum")
-p1=plt.plot(x,maxs,"-b",lw=4, label="First Maximum")
-print(maxs)
-plt.ylabel("Long Period (nm)")
+    ax2 = plt.twinx()
+    ax2.set_ylabel("Width (nm)")
 
-ax2 = plt.twinx()
-ax2.set_ylabel("Width (nm)")
+    p2=ax2.plot(x,lcs,"-r",lw=4, label="lc")
+    print(lcs)
 
-p2=ax2.plot(x,lcs,"-r",lw=4, label="lc")
-print(lcs)
-#ax2.plot(lcs, label="lc")
-#plt.plot(qs, label="Q")
-#plt.plot(As, label="A")
-#plt.plot(gmins, label="gmin")
-#plt.plot(gmaxs, label="gmax")
+    plt.legend(p1+p2,["Long Period","Hard Block Thickness"],loc=2)
 
-plt.legend(p1+p2,["Long Period","Hard Block Thickness"],loc=2)
-#plt.subplot(1,3,3)
-#plt.imshow(np.vstack(specs).T)
+    plt.xlim(0,21)
 
-plt.xlim(0,21)
+    plt.show()
 
-plt.show()
+    print("Minimum")
+    print("%f ± %f" % (np.median(mins), np.max(np.abs(mins-np.median(mins)))))
+    print("Long Period")
+    print("%f ± %f" % (np.median(maxs), np.max(np.abs(maxs-np.median(maxs)))))
+    print("Average Interface Thickness")
+    print("%f ± %f" % (np.median(dtrs), np.max(np.abs(dtrs-np.median(dtrs)))))
+    print("Average Hard Block Thickness")
+    print("%f ± %f" % (np.median(lcs), np.max(np.abs(lcs-np.median(lcs)))))
+    print("Average Core Thickness ")
+    print("%f ± %f" % (np.median(qs), np.max(np.abs(qs-np.median(qs)))))
+    print("PolyDispersity")
+    print("%f ± %f" % (np.median(As), np.max(np.abs(As-np.median(As)))))
+    print("Filling Fraction")
+    print("%f ± %f" % (np.median(lcs/maxs), np.max(np.abs(lcs/maxs-np.median(lcs/maxs)))))
 
-print("Minimum")
-print("%f ± %f" % (np.median(mins), np.max(np.abs(mins-np.median(mins)))))
-print("Long Period")
-print("%f ± %f" % (np.median(maxs), np.max(np.abs(maxs-np.median(maxs)))))
-print("Average Interface Thickness")
-print("%f ± %f" % (np.median(dtrs), np.max(np.abs(dtrs-np.median(dtrs)))))
-print("Average Hard Block Thickness")
-print("%f ± %f" % (np.median(lcs), np.max(np.abs(lcs-np.median(lcs)))))
-print("Average Core Thickness ")
-print("%f ± %f" % (np.median(qs), np.max(np.abs(qs-np.median(qs)))))
-print("PolyDispersity")
-print("%f ± %f" % (np.median(As), np.max(np.abs(As-np.median(As)))))
-print("Filling Fraction")
-print("%f ± %f" % (np.median(lcs/maxs), np.max(np.abs(lcs/maxs-np.median(lcs/maxs)))))
+
+if __name__=="__main__":
+
+    from sys import argv
+
+    main(argv[1],argv[2:])
