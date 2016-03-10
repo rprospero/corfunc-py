@@ -11,19 +11,26 @@ from numpy.linalg import lstsq
 
 
 def porod(q, K, sigma):
+    """Calculate the Porod region of a curve"""
     return (K*q**(-4))*np.exp(-q**2*sigma**2)
 
 
 def guinier(q, A, B):
+    """Calculate the Guinier region of a curve"""
     return A*np.exp(B*q**2)
 
 
 def fitguinier(q, iq):
+    """Fit the Guinier region of a curve"""
     A = np.vstack([q**2, np.ones(q.shape)]).T
     return lstsq(A, np.log(iq))
 
 
+# FIXME: result_array is recalculated on every call, when it should
+# just be cached on creation.  Closure is a poor man's object and all
+# that.
 def smooth(f, g, start, stop):
+    """Interpolate from curve f to curve g over the range from start to stop"""
     def result_array(x):
         ys = np.zeros(x.shape)
         ys[x <= start] = f(x[x <= start])
@@ -45,6 +52,8 @@ def smooth(f, g, start, stop):
 
 
 def fit_data(q, iq):
+    """Given a data set, extrapolate out to large q with Porod
+    and to q=0 with Guinier"""
 
     maxq = 0.04
 
@@ -68,6 +77,7 @@ def fit_data(q, iq):
 
 
 def corr(f, background=None):
+    """Transform a scattering curve into a correlation function"""
     orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
     if background is None:
         back = np.zeros(orig. shape)[:, 1]
@@ -85,6 +95,7 @@ def corr(f, background=None):
 
 
 def extract(x, y):
+    """Extract the interesting measurements from a correlation function"""
     maxs = argrelextrema(y, np.greater)[0]  # A list of the maxima
     mins = argrelextrema(y, np.less)[0]  # A list of the minima
 
@@ -120,6 +131,7 @@ specs = []
 
 
 def main(files, background=None, export=None, plot=False, save=None):
+    """Load a set of intensity curves and gathers the relevant statistics"""
     import os.path
 
     for f in files:
