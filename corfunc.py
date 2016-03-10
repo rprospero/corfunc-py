@@ -102,13 +102,9 @@ def extract(x, y):
     b = y[1:-1][linear_point]-m*x[1:-1][linear_point]
 
     Lc = (GammaMin-b)/m
-    plt.axhline(GammaMin)
-    plt.axhline(0)
 
     xs = np.linspace(0, x[mins[0]], 30)
     ys = m*xs+b
-
-    plt.plot(xs, ys)
 
     mask = np.where(np.abs((y-(m*x+b))/y) < 0.01)[0]
     dtr = x[mask[0]]
