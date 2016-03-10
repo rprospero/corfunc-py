@@ -85,32 +85,37 @@ def corr(f, background=None):
 
 
 def extract(x, y):
-    maxs = argrelextrema(y, np.greater)[0]
-    mins = argrelextrema(y, np.less)[0]
+    maxs = argrelextrema(y, np.greater)[0]  # A list of the maxima
+    mins = argrelextrema(y, np.less)[0]  # A list of the minima
 
+    # If there are no maxima, return NaN
     if len(maxs) == 0:
         return (np.nan, np.nan, np.nan, np.nan, np.nan, np.nan)
-    GammaMin = y[mins[0]]
+    GammaMin = y[mins[0]]  # The value at the first minimum
 
-    ddy = (y[:-2]+y[2:]-2*y[1:-1])/(x[2:]-x[:-2])**2
-    dy = (y[2:]-y[:-2])/(x[2:]-x[:-2])
+    ddy = (y[:-2]+y[2:]-2*y[1:-1])/(x[2:]-x[:-2])**2  # Second derivative of y
+    dy = (y[2:]-y[:-2])/(x[2:]-x[:-2])  # First derivative of y
+    # Find where the second derivative goes to zero
     zeros = argrelextrema(np.abs(ddy), np.less)[0]
+    # locate the first inflection point
     linear_point = zeros[0]
     linear_point = int(mins[0]/10)
 
-    m = np.mean(dy[linear_point-40:linear_point+40])
-    b = y[1:-1][linear_point]-m*x[1:-1][linear_point]
+    m = np.mean(dy[linear_point-40:linear_point+40])  # Linear slope
+    b = y[1:-1][linear_point]-m*x[1:-1][linear_point]  # Linear intercept
 
-    Lc = (GammaMin-b)/m
+    Lc = (GammaMin-b)/m  # Hard block thickness
 
+    # Create a fitted line through the linear section
     xs = np.linspace(0, x[mins[0]], 30)
-    ys = m*xs+b
+    ys = m * xs + b
 
+    #Find the data points where the graph is linear to within 1%
     mask = np.where(np.abs((y-(m*x+b))/y) < 0.01)[0]
-    dtr = x[mask[0]]
-    d0 = x[mask[-1]]
+    dtr = x[mask[0]]  # Beginning of Linear Section
+    d0 = x[mask[-1]]  # End of Linear Section
     GammaMax = y[mask[-1]]
-    A = -GammaMin/GammaMax
+    A = -GammaMin/GammaMax  # Normalized depth of minimum
 
     return (x[mins[0]], x[maxs[0]], dtr, Lc, d0, A)
 
