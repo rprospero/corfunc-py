@@ -176,19 +176,17 @@ def main(files, background=None, export=None, plot=False, save=None):
     qs = np.array([v.d0 for v in values if not isnan(v.minimum)])
     As = np.array([v.A for v in values if not isnan(v.minimum)])
 
-    print("Long Period")
-    print("%f ± %f" % (np.median(maxs), np.max(np.abs(maxs-np.median(maxs)))))
-    print("Average Hard Block Thickness")
-    print("%f ± %f" % (np.median(lcs), np.max(np.abs(lcs-np.median(lcs)))))
-    print("Average Interface Thickness")
-    print("%f ± %f" % (np.median(dtrs), np.max(np.abs(dtrs-np.median(dtrs)))))
-    print("Average Core Thickness ")
-    print("%f ± %f" % (np.median(qs), np.max(np.abs(qs-np.median(qs)))))
-    print("PolyDispersity")
-    print("%f ± %f" % (np.median(As), np.max(np.abs(As-np.median(As)))))
-    print("Filling Fraction")
-    print("%f ± %f" % (np.median(lcs/maxs),
-                       np.max(np.abs(lcs/maxs-np.median(lcs/maxs)))))
+    def printWithError(title, values):
+        print(title)
+        print("%f ± %f" % (np.median(values),
+                            np.max(np.abs(values-np.median(values)))))
+
+    printWithError("Long Period", maxs)
+    printWithError("Average Hard Block Thickness", lcs)
+    printWithError("Average Interface Thickness", dtrs)
+    printWithError("Average Core Thickness ", qs)
+    printWithError("PolyDispersity", As)
+    printWithError("Filling Fraction", lcs/maxs)
 
     if export:
         np.savetxt(export,
