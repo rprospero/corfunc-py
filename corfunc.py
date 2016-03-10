@@ -70,7 +70,7 @@ def fit_data(q, iq):
 def corr(f, background=None):
     orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
     if background is None:
-        back = np.zeros(orig.shape)[:,1]
+        back = np.zeros(orig. shape)[:, 1]
     else:
         back = np.loadtxt(background, skiprows=1, dtype=np.float32)[:, 1]
     q = orig[:480, 0]
@@ -106,11 +106,7 @@ def extract(x, y):
 
     Lc = (GammaMin-b)/m  # Hard block thickness
 
-    # Create a fitted line through the linear section
-    xs = np.linspace(0, x[mins[0]], 30)
-    ys = m * xs + b
-
-    #Find the data points where the graph is linear to within 1%
+    # Find the data points where the graph is linear to within 1%
     mask = np.where(np.abs((y-(m*x+b))/y) < 0.01)[0]
     dtr = x[mask[0]]  # Beginning of Linear Section
     d0 = x[mask[-1]]  # End of Linear Section
