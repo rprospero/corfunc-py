@@ -70,7 +70,7 @@ def fit_data(q, iq):
 def corr(f, background=None):
     orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
     if background is None:
-        back = np.zeros(orig.shape)
+        back = np.zeros(orig.shape)[:,1]
     else:
         back = np.loadtxt(background, skiprows=1, dtype=np.float32)[:, 1]
     q = orig[:480, 0]
