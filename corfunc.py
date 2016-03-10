@@ -10,6 +10,12 @@ from scipy.signal import argrelextrema
 from numpy.linalg import lstsq
 
 
+# Pretend Python allows for anonymous classes
+class Struct:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+
 def porod(q, K, sigma):
     """Calculate the Porod region of a curve"""
     return (K*q**(-4))*np.exp(-q**2*sigma**2)
@@ -100,8 +106,14 @@ def extract(x, y):
     mins = argrelextrema(y, np.less)[0]  # A list of the minima
 
     # If there are no maxima, return NaN
+    garbage = Struct(minimum=np.nan,
+                     maximum=np.nan,
+                     dtr=np.nan,
+                     Lc=np.nan,
+                     d0=np.nan,
+                     A=np.nan)
     if len(maxs) == 0:
-        return (np.nan, np.nan, np.nan, np.nan, np.nan, np.nan)
+        return garbage
     GammaMin = y[mins[0]]  # The value at the first minimum
 
     ddy = (y[:-2]+y[2:]-2*y[1:-1])/(x[2:]-x[:-2])**2  # Second derivative of y
@@ -119,12 +131,19 @@ def extract(x, y):
 
     # Find the data points where the graph is linear to within 1%
     mask = np.where(np.abs((y-(m*x+b))/y) < 0.01)[0]
+    if len(mask) == 0:  # Return garbage for bad fits
+        return garbage
     dtr = x[mask[0]]  # Beginning of Linear Section
     d0 = x[mask[-1]]  # End of Linear Section
     GammaMax = y[mask[-1]]
     A = -GammaMin/GammaMax  # Normalized depth of minimum
 
-    return (x[mins[0]], x[maxs[0]], dtr, Lc, d0, A)
+    return Struct(minimum=x[mins[0]],
+                  maximum=x[maxs[0]],
+                  dtr=dtr,
+                  Lc=Lc,
+                  d0=d0,
+                  A=A)
 
 values = []
 specs = []
@@ -151,11 +170,11 @@ def main(files, background=None, export=None, plot=False, save=None):
 
     from math import isnan
 
-    maxs = np.array([v[1] for v in values if not isnan(v[0])])
-    dtrs = np.array([v[2] for v in values if not isnan(v[0])])
-    lcs = np.array([v[3] for v in values if not isnan(v[0])])
-    qs = np.array([v[4] for v in values if not isnan(v[0])])
-    As = np.array([v[5] for v in values if not isnan(v[0])])
+    maxs = np.array([v.maximum for v in values if not isnan(v.minimum)])
+    dtrs = np.array([v.dtr for v in values if not isnan(v.minimum)])
+    lcs = np.array([v.Lc for v in values if not isnan(v.minimum)])
+    qs = np.array([v.d0 for v in values if not isnan(v.minimum)])
+    As = np.array([v.A for v in values if not isnan(v.minimum)])
 
     print("Long Period")
     print("%f ± %f" % (np.median(maxs), np.max(np.abs(maxs-np.median(maxs)))))
