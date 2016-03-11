@@ -7,6 +7,6 @@ script: python -m unittest discover -s tests -p "*.py"
 
 # Install packages
 install:
-  - sudo apt-get install python-matplotlib python-scipy liblapack3 libatlas-dev libblas-dev
+  - sudo apt-get install python-matplotlib python-scipy libatlas-dev libblas-dev
   - pip install matplotlib
   - pip install scipy
