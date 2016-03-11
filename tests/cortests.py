@@ -2,7 +2,7 @@
 
 import unittest
 import numpy as np
-from corfunc import porod, guinier, fitguinier
+from corfunc import porod, guinier, fitguinier, smooth
 
 
 class TestStringMethods(unittest.TestCase):
@@ -22,6 +22,26 @@ class TestStringMethods(unittest.TestCase):
 
         self.assertAlmostEqual(B, g[0])
         self.assertAlmostEqual(A, np.exp(g[1]))
+
+    def test_smooth(self):
+        f = lambda x: np.sqrt(x)*np.sin(x/10)
+        g = lambda x: np.log(1+x)
+        s = smooth(f, g, 25, 75)
+
+        x = np.linspace(0, 1, 100)
+        fg = np.vstack([f(x), g(x)])
+        small = np.min(fg, axis=0)
+        large = np.max(fg, axis=0)
+
+        x = np.linspace(0, 1, 100)
+
+        self.assertTrue(np.all(small <= s(x)))
+        self.assertTrue(np.all(s(x) <= large))
+        self.assertEqual(s(0), f(0))
+        self.assertEqual(s(25), f(25))
+        self.assertEqual(s(75), g(75))
+        self.assertEqual(s(100), g(100))
+
 
 if __name__ == '__main__':
     unittest.main()
