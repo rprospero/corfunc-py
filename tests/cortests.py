@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import unittest
-from hypothesis import given
+from hypothesis import given, assume
 from hypothesis.strategies import floats
 import numpy as np
 from corfunc import porod, guinier, fitguinier, smooth
@@ -16,16 +16,16 @@ class TestStringMethods(unittest.TestCase):
     def test_guinier(self, q, A):
         self.assertEqual(guinier(q, A, 0), A)
 
-    def test_sane_fit(self):
-        A = np.pi
-        B = -np.sqrt(2)
+    @given(A=floats(min_value=1e-100, max_value=1e30),
+           B=floats(min_value=-1e2, max_value=-1e-5))
+    def test_sane_fit(self, A, B):
         x = np.linspace(0, 1, 71)
         y = guinier(x, A, B)
 
         g = fitguinier(x, y)[0]
 
-        self.assertAlmostEqual(B, g[0])
-        self.assertAlmostEqual(A, np.exp(g[1]))
+        self.assertAlmostEqual(B/g[0], 1.0)
+        self.assertAlmostEqual(A/np.exp(g[1]), 1.0)
 
     def test_smooth(self):
         f = lambda x: np.sqrt(x)*np.sin(x/10)
