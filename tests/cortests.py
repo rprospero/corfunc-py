@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 import unittest
+from hypothesis import given
+from hypothesis.strategies import floats
 import numpy as np
 from corfunc import porod, guinier, fitguinier, smooth
 
@@ -9,8 +11,10 @@ class TestStringMethods(unittest.TestCase):
     def test_porod(self):
         self.assertEqual(porod(1, 1, 0), 1)
 
-    def test_guinier(self):
-        self.assertEqual(guinier(1, 1, 0), 1)
+    @given(q=floats(min_value=0, max_value=1e3),
+           A=floats(min_value=0))
+    def test_guinier(self, q, A):
+        self.assertEqual(guinier(q, A, 0), A)
 
     def test_sane_fit(self):
         A = np.pi
