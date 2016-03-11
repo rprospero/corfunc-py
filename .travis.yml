@@ -8,4 +8,6 @@ script: python -m unittest discover -s tests -p "*.py"
 # Install packages
 install:
   - sudo apt-get install python-matplotlib
+  - sudo apt-get install python-scipy
   - pip install matplotlib
+  - pip install scipy
