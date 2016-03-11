@@ -23,7 +23,7 @@ install:
 
   # Replace dep1 dep2 ... with your dependencies
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION scipy numpy matplotlib
-  - pip install hypothesis
   - source activate test-environment
+  - pip install hypothesis
 
 script: python -m unittest discover -s tests -p "*.py"
