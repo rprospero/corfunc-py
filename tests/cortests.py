@@ -27,24 +27,25 @@ class TestStringMethods(unittest.TestCase):
         self.assertAlmostEqual(B/g[0], 1.0)
         self.assertAlmostEqual(A/np.exp(g[1]), 1.0)
 
-    def test_smooth(self):
+    @given(start=floats(min_value=0,max_value=1e50),
+           stop=floats(max_value=1e50))
+    def test_smooth(self, start, stop):
+        assume(stop > start + 1e-50)
         f = lambda x: np.sqrt(x)*np.sin(x/10)
         g = lambda x: np.log(1+x)
-        s = smooth(f, g, 25, 75)
+        s = smooth(f, g, start, stop)
 
-        x = np.linspace(0, 1, 100)
+        x = np.linspace(start/2, stop*2, 100)
         fg = np.vstack([f(x), g(x)])
         small = np.min(fg, axis=0)
         large = np.max(fg, axis=0)
 
-        x = np.linspace(0, 1, 100)
-
         self.assertTrue(np.all(small <= s(x)))
         self.assertTrue(np.all(s(x) <= large))
-        self.assertEqual(s(0), f(0))
-        self.assertEqual(s(25), f(25))
-        self.assertEqual(s(75), g(75))
-        self.assertEqual(s(100), g(100))
+        self.assertEqual(s(start/2), f(start/2))
+        self.assertEqual(s(start), f(start))
+        self.assertEqual(s(stop), g(stop))
+        self.assertEqual(s(stop*2), g(stop*2))
 
 
 if __name__ == '__main__':
