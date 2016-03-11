@@ -1,0 +1,12 @@
+#+TITLE: Corfunc-py
+#+AUTHOR: Adam Washington
+#+EMAIL: a.washington@sheffield.ac.uk
+
+=corfunc-py= is a python program for performing using correlation
+functions to extract information from scattering patterns.
+
+[[https://travis-ci.org/rprospero/corfunc-py.svg?branch=master]]
+
+I regret to inform you that you are looking at the current
+documentation.  I'll come back over this in a bit, after I've tidied
+up the code a bit more.
