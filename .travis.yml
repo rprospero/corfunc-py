@@ -22,7 +22,8 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION scipy numpy matplotlib dhirschfeld/hypothesis
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION scipy numpy matplotlib
+  - cond install -c dhirschfeld hypothesis
   - source activate test-environment
 
 script: python -m unittest discover -s tests -p "*.py"
