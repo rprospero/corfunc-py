@@ -7,7 +7,7 @@ import numpy as np
 from corfunc import porod, guinier, fitguinier, smooth
 
 
-class TestStringMethods(unittest.TestCase):
+class TestModelMethods(unittest.TestCase):
     def test_porod(self):
         self.assertEqual(porod(1, 1, 0), 1)
 
