@@ -10,6 +10,13 @@ from scipy.signal import argrelextrema
 from numpy.linalg import lstsq
 
 
+#Global Variables
+#These really need to be made into options
+MAXQ = 0.04
+MINQ = 0.0065*3
+
+
+
 # Pretend Python allows for anonymous classes
 class Struct:
     def __init__(self, **entries):
@@ -57,11 +64,11 @@ def smooth(f, g, start, stop):
     return result
 
 
-def fit_data(q, iq):
+def fit_data(q, iq, qrange):
     """Given a data set, extrapolate out to large q with Porod
     and to q=0 with Guinier"""
 
-    maxq = 0.04
+    minq, maxq = qrange
 
     mask = q > maxq
 
@@ -71,8 +78,7 @@ def fit_data(q, iq):
     data = interp1d(q, iq)
     s1 = smooth(data, lambda x: porod(x, fitp[0], fitp[1]), maxq, q[-1])
 
-    minq = 0.0065*3
-    mask = np.logical_and(q < minq, minq*0 < q)
+    mask = np.logical_and(q < minq, 0 < q)
     mask[0:6] = False
 
     g = fitguinier(q[mask], iq[mask])[0]
@@ -82,7 +88,7 @@ def fit_data(q, iq):
     return s2
 
 
-def corr(f, background=None):
+def corr(f, qrange, background=None):
     """Transform a scattering curve into a correlation function"""
     orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
     if background is None:
@@ -92,7 +98,7 @@ def corr(f, background=None):
     q = orig[:480, 0]
     iq = orig[:480, 1]
     iq -= back[:480]
-    s2 = fit_data(q, iq)
+    s2 = fit_data(q, iq, qrange)
     qs = np.arange(0, q[-1]*100, (q[1]-q[0]))
     iqs = s2(qs)*qs**2
     transform = dct(iqs)
@@ -149,12 +155,12 @@ values = []
 specs = []
 
 
-def main(files, background=None, export=None, plot=False, save=None):
+def main(files, qrange, background=None, export=None, plot=False, save=None):
     """Load a set of intensity curves and gathers the relevant statistics"""
     import os.path
 
     for f in files:
-        x, y = corr(f, background)
+        x, y = corr(f, qrange, background)
         plt.plot(x, y, label=os.path.basename(f))
         values.append(extract(x, y))
         specs.append(y)
@@ -214,5 +220,6 @@ if __name__ == "__main__":
                         help='Scattering data in two column ascii format')
     args = parser.parse_args()
 
-    main(args.FILE, args.background, args.export,
+    main(args.FILE, (MINQ, MAXQ),
+         args.background, args.export,
          args.plot, args.saveImage)
