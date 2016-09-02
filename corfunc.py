@@ -38,6 +38,11 @@ def fitguinier(q, iq):
     A = np.vstack([q**2, np.ones(q.shape)]).T
     return lstsq(A, np.log(iq))
 
+def fitcylinder(q, iq):
+    """Fit to an infinite cylinder at low q"""
+    A = np.vstack([1/q]).T
+    return lstsq(A,iq)
+
 
 # FIXME: result_array is recalculated on every call, when it should
 # just be cached on creation.  Closure is a poor man's object and all
