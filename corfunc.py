@@ -10,13 +10,6 @@ from scipy.signal import argrelextrema
 from numpy.linalg import lstsq
 
 
-#Global Variables
-#These really need to be made into options
-MAXQ = 0.04
-MINQ = 0.0065*3
-
-
-
 # Pretend Python allows for anonymous classes
 class Struct:
     def __init__(self, **entries):
@@ -214,6 +207,11 @@ if __name__ == "__main__":
                         help='A background measurement for subtraction')
     parser.add_argument('--export', action='store',
                         help='Export the extracted real space data to a file')
+    parser.add_argument('--minq', default  = 0.0065 * 3, type=float,
+                        help="Minimum Q")
+    parser.add_argument('--maxq', default  = 0.04, type=float,
+                        help="Maximum Q")
+    parser.add_argument('--lowq-model' type=str
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--plot', action='store_true',
@@ -225,6 +223,6 @@ if __name__ == "__main__":
                         help='Scattering data in two column ascii format')
     args = parser.parse_args()
 
-    main(args.FILE, (MINQ, MAXQ),
+    main(args.FILE, (args.minq, args.maxq),
          args.background, args.export,
          args.plot, args.saveImage)
