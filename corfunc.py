@@ -91,7 +91,7 @@ def fit_data(model, q, iq, qrange):
     return s2
 
 
-def corr(model, f, qrange, background=None):
+def corr(model, f, qrange, background=None, qplot=False):
     """Transform a scattering curve into a correlation function"""
     orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
     if background is None:
@@ -101,12 +101,20 @@ def corr(model, f, qrange, background=None):
     q = orig[:480, 0]
     iq = orig[:480, 1]
     iq -= back[:480]
-    s2 = fit_data(q, iq, qrange)
-    qs = np.arange(0, q[-1]*100, (q[1]-q[0]))
+    s2 = fit_data(model, q, iq, qrange)
+    qs = np.arange(2e-7, q[-1]*100, (q[1]-q[0]))
     iqs = s2(qs)*qs**2
-    transform = dct(iqs)
-    xs = np.pi*np.arange(len(qs))/(q[1]-q[0])/len(qs)
-    return (xs, transform)
+    if qplot:
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.plot(q,iq*q**2)
+        plt.plot(qs,iqs)
+        plt.show()
+        return None
+    else:
+        transform = dct(iqs)
+        xs = np.pi*np.arange(len(qs))/(q[1]-q[0])/len(qs)
+        return (xs, transform)
 
 
 def extract(x, y):
@@ -158,24 +166,29 @@ values = []
 specs = []
 
 
-def main(files, qrange, model="guinier", background=None, export=None, plot=False, save=None):
+def main(files, qrange, model="guinier", background=None, export=None, plot=False, save=None, qplot=False):
     """Load a set of intensity curves and gathers the relevant statistics"""
     import os.path
 
     for f in files:
-        x, y = corr(model, f, qrange, background)
-        plt.plot(x, y, label=os.path.basename(f))
-        values.append(extract(x, y))
-        specs.append(y)
-        x0 = x
-    plt.xlabel("Distance [nm]")
-    plt.ylabel("Correlation")
-    plt.legend()
+        corr_result = corr(model, f, qrange, background, qplot)
+        if not qplot:
+            x, y = corr_result
+            plt.plot(x, y, label=os.path.basename(f))
+            values.append(extract(x, y))
+            specs.append(y)
+            x0 = x
+    if not qplot:
+        plt.xlabel("Distance [nm]")
+        plt.ylabel("Correlation")
+        plt.legend()
 
     if plot:
         plt.show()
     elif save:
         plt.savefig(save)
+    else:
+        return
 
     from math import isnan
 
@@ -224,6 +237,8 @@ if __name__ == "__main__":
                        help='Display a plot of the correlation functions.')
     group.add_argument('--saveImage', action='store',
                        help='Save a plot to an image file.')
+    group.add_argument('--qplot', action="store_true",
+                       help="Plot the data in q-space")
 
     parser.add_argument('FILE', nargs="+",
                         help='Scattering data in two column ascii format')
@@ -232,4 +247,4 @@ if __name__ == "__main__":
     main(args.FILE, (args.minq, args.maxq),
          args.lowq_model,
          args.background, args.export,
-         args.plot, args.saveImage)
+         args.plot, args.saveImage, args.qplot)
