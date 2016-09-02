@@ -77,7 +77,7 @@ def fit_data(model, q, iq, qrange):
     s1 = smooth(data, lambda x: porod(x, fitp[0], fitp[1]), maxq, q[-1])
 
     mask = np.logical_and(q < minq, 0 < q)
-    mask[0:6] = False
+    # mask[0:6] = False
 
     if model=="guinier":
         g = fitguinier(q[mask], iq[mask])[0]
