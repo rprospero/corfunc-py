@@ -62,7 +62,7 @@ def smooth(f, g, start, stop):
     return result
 
 
-def fit_data(q, iq, qrange):
+def fit_data(model, q, iq, qrange):
     """Given a data set, extrapolate out to large q with Porod
     and to q=0 with Guinier"""
 
@@ -79,14 +79,19 @@ def fit_data(q, iq, qrange):
     mask = np.logical_and(q < minq, 0 < q)
     mask[0:6] = False
 
-    g = fitguinier(q[mask], iq[mask])[0]
-
-    s2 = smooth(lambda x: (np.exp(g[1]+g[0]*x**2)), s1, q[0], minq)
+    if model=="guinier":
+        g = fitguinier(q[mask], iq[mask])[0]
+        s2 = smooth(lambda x: (np.exp(g[1]+g[0]*x**2)), s1, q[0], minq)
+    elif model=="cylinder":
+        g = fitcylinder(q[mask],iq[mask])[0]
+        s2 = smooth(lambda x: g[0] / x, s1, q[0], minq)
+    else:
+        print("lowq-model must either be guinier or cylinder")
 
     return s2
 
 
-def corr(f, qrange, background=None):
+def corr(model, f, qrange, background=None):
     """Transform a scattering curve into a correlation function"""
     orig = np.loadtxt(f, skiprows=1, dtype=np.float32)
     if background is None:
@@ -153,12 +158,12 @@ values = []
 specs = []
 
 
-def main(files, qrange, background=None, export=None, plot=False, save=None):
+def main(files, qrange, model="guinier", background=None, export=None, plot=False, save=None):
     """Load a set of intensity curves and gathers the relevant statistics"""
     import os.path
 
     for f in files:
-        x, y = corr(f, qrange, background)
+        x, y = corr(model, f, qrange, background)
         plt.plot(x, y, label=os.path.basename(f))
         values.append(extract(x, y))
         specs.append(y)
@@ -211,7 +216,8 @@ if __name__ == "__main__":
                         help="Minimum Q")
     parser.add_argument('--maxq', default  = 0.04, type=float,
                         help="Maximum Q")
-    parser.add_argument('--lowq-model' type=str
+    parser.add_argument('--lowq-model', type=str, default="guinier",
+                        help="What model to use for low q.  The current options are guinier and cylinder")
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--plot', action='store_true',
@@ -224,5 +230,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.FILE, (args.minq, args.maxq),
+         args.lowq_model,
          args.background, args.export,
          args.plot, args.saveImage)
